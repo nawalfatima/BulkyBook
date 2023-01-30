@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BilkyBook.Utility
+namespace BulkyBook.Utility
 {
     public static class SD
     {
     }
 }
-//to store constatnts
+//to store static data eg, constts
