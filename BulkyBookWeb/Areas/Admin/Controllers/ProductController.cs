@@ -20,36 +20,8 @@ namespace BulkyBookWeb.Areas.Admin.Controllers
         {
             return View();
         }
-        ////GET
-        //public IActionResult Create()
-        //{
-        //    return View();
-        //}
-
-        ////POST
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public IActionResult Create(Product obj)
-        //{
-        //    if (obj.Name.Length>50)
-        //    {
-        //        ModelState.AddModelError("Name", "Name should be less than 50 characters");
-        //    }
-
-        //    if (ModelState.IsValid)
-        //    {
-        //        _unitOfWork.CoverType.Add(obj);
-        //        _unitOfWork.Save();
-
-        //        TempData["success"] = "Cover Type created successfully";
-
-        //        return RedirectToAction("Index"); //redirect to action within the same controller. for a diff controller it goes ("actionname", "controllername)
-        //    }
-        //    return View(obj);
-
-        //}
-
-        //GET
+     
+    //GET
         public IActionResult Upsert(int id)
         {
             ProductVM productVM = new()
@@ -78,8 +50,10 @@ namespace BulkyBookWeb.Areas.Admin.Controllers
             else
             {
                 //update
+                productVM.Product = _unitOfWork.Product.GetFirstOrDefault(u=>u.Id == id);
+                return View(productVM);
+
             }
-            return View(productVM);
 
         }
 
@@ -100,15 +74,32 @@ namespace BulkyBookWeb.Areas.Admin.Controllers
                     string fileName= Guid.NewGuid().ToString();
                     var uploads = Path.Combine(wwwRootPath, @"images\products");
                     var extension = Path.GetExtension(file.FileName);
+                    if(obj.Product.ImageUrl != null)
+                    {
+                        var oldImagePath = Path.Combine(wwwRootPath, obj.Product.ImageUrl.Trim('\\'));
+                        if (System.IO.File.Exists(oldImagePath))
+                        {
+                            System.IO.File.Delete(oldImagePath);
+                        }
+                    }
+
                     using(var fileStreams = new FileStream(Path.Combine(uploads , fileName + extension), FileMode.Create))
                     {
                         file.CopyTo(fileStreams);
                     }
                     obj.Product.ImageUrl = @"images\products\" + fileName + extension;
                 }
-                        
+                     if (obj.Product.Id == 0)
+                {
                     _unitOfWork.Product.Add(obj.Product);
-                    _unitOfWork.Save();
+                }
+                else
+                {
+                    _unitOfWork.Product.Update(obj.Product);
+
+                }
+
+                _unitOfWork.Save();
 
                     TempData["success"] = "Product created successfully";
 
@@ -161,7 +152,7 @@ namespace BulkyBookWeb.Areas.Admin.Controllers
 
         public IActionResult GetAll()
         {
-            var productList = _unitOfWork.Product.GetAll();
+            var productList = _unitOfWork.Product.GetAll(includeProperties: "Category,CoverType");
             return Json(new { data = productList });
         }
         #endregion
