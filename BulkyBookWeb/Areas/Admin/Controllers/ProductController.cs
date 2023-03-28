@@ -155,7 +155,7 @@ namespace BulkyBookWeb.Areas.Admin.Controllers
 
             return Json(new { success = true, message = "Delete successful" });
 
-            return RedirectToAction("Index");
+           // return RedirectToAction("Index");
 
         }
 
